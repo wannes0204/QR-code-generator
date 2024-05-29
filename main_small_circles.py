@@ -149,8 +149,8 @@ dot_sizes = [0.4, 0.5, 0.6, 0.7]
 background_colors = ["rgba(255,255,255,255)", "rgba(255,255,255,0)", "rgba(251,252,248,255)"]
 qr_colors = ["rgb(0,0,0)", "rgb(18,20,23)", "rgb(100,170,137)", "rgb(44,56,48)", "rgb(64,85,71)"]
 
-border_fraction = 0.35
-logo_franction = 1.4
+border_fraction = 0.45
+logo_franction = 1.6
 
 show_result = True
 save = False
