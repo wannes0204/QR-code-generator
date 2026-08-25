@@ -1,0 +1,1 @@
+Generate QR codes over custom images

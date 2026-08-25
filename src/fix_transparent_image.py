@@ -1,4 +1,6 @@
-
+"""
+Some transparent image behave weird, this fixes that. Background should be white transparent.
+"""
 
 
 import numpy as np

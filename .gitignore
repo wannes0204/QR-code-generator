@@ -1,1 +1,5 @@
 .venv/
+.vscode/
+assets/input/*
+assets/output/*
+__pycache__/

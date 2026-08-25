@@ -1,3 +1,7 @@
+"""
+Draws very simple QR codes that can be used for AI image generation.
+"""
+
 import qrcode
 from PIL import Image, ImageDraw
 import matplotlib.pyplot as plt
@@ -8,7 +12,8 @@ def generate_dot_locations(data:str):
     # Generate QR code
     qr = qrcode.QRCode(
         version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_H,
+        #error_correction=qrcode.constants.ERROR_CORRECT_H,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
         box_size=1,
         border=0,
     )
@@ -49,7 +54,6 @@ def draw_dots(draw:ImageDraw, cell_radius:int, circle_radius:int, size:int, back
                 fill=qr_color if dot_locations[i, j] else background_color,
                 outline=None,
             )
-    
 
 def draw_squares(draw, square_color, background_color, cell_radius, big_square_locations, small_square_location):
     # big squares
@@ -134,81 +138,44 @@ def draw_squares(draw, square_color, background_color, cell_radius, big_square_l
     )
 
 
+data_link = "https://ttckruibeke.info/"
 
-logo_path = os.path.join("Input", "instagram_inverse.png")
-logo_name = "instagram_inverse"
+border_fraction = 0.1
 
-datas = {"payconiq" : "https://payconiq.com/MERCHANT/1/6308CFDC7E89415BD1893307",
-         "website" : "https://ttckruibeke.info/",
-         "instagram" : "https://www.instagram.com/ttc_kruibeke/",
-         "facebook" : "https://www.facebook.com/profile.php?id=61556584527983"}
+image_size = 3
+dot_size = 0.1
 
-image_sizes = [1, 2, 3, 4, 5]
-dot_sizes = [0.4, 0.5, 0.6, 0.7]
-
-background_colors = ["rgba(255,255,255,255)", "rgba(255,255,255,0)", "rgba(251,252,248,255)"]
-qr_colors = ["rgb(0,0,0)", "rgb(18,20,23)", "rgb(100,170,137)", "rgb(44,56,48)", "rgb(64,85,71)"]
-
-border_fraction = 0.45
-logo_franction = 1.6
-
-show_result = True
-save = False
+show_result = False
+save = True
 
 
+background_color = "rgb(255, 255, 255)"
+
+qr_color = "rgb(0, 0, 0)"
 
 
+cell_radius = 10 * image_size
+circle_radius = int(cell_radius * dot_size)
 
+if save:
+    save_path = os.path.join("Output")
+    os.makedirs(save_path, exist_ok=True)
+    save_name = os.path.join(save_path, "ai_template.png")
 
-showing = False
-#for data, data_link in datas.items():
-for data, data_link in [("instagram", datas["instagram"])]:
-    for image_size in image_sizes:
-        for dot_size in dot_sizes:
-            for background_color in background_colors:
-                for qr_color in qr_colors:
-                    cell_radius = 10 * image_size
-                    circle_radius = int(cell_radius * dot_size)
+dot_locations = generate_dot_locations(data_link)
 
-                    if save:
-                        save_path = os.path.join("Output", "TTC Kruibeke", data, f"resolutie_{image_size}", f"dotsize_{dot_size}")
-                        os.makedirs(save_path, exist_ok=True)
-                        save_name = os.path.join(save_path, f"{logo_name}_logofrac{logo_franction}_borderfrac{border_fraction}_color{qr_color}_background{background_color}.png")
+small_square_location = find_small_square(dot_locations)
+big_square_locations = [(0, 0), (dot_locations.shape[0]-7, 0), (0, dot_locations.shape[1]-7)]
 
-                    dot_locations = generate_dot_locations(datas[data])
+width, height = dot_locations.shape[1] * (2*cell_radius), dot_locations.shape[0] * (2*cell_radius)
+image_result = Image.new("RGBA", (int((2*border_fraction+1)*width), int((2*border_fraction+1)*height)), "rgba(255, 255, 255, 0)")
 
-                    small_square_location = find_small_square(dot_locations)
-                    big_square_locations = [(0, 0), (dot_locations.shape[0]-7, 0), (0, dot_locations.shape[1]-7)]
+draw = ImageDraw.Draw(image_result)
 
-                    width, height = dot_locations.shape[1] * (2*cell_radius), dot_locations.shape[0] * (2*cell_radius)
-                    image_result = Image.new("RGBA", (int((2*border_fraction+1)*width), int((2*border_fraction+1)*height)), background_color)
+draw_dots(draw, cell_radius, circle_radius, width, background_color, qr_color)
+draw_squares(draw, qr_color, background_color, cell_radius, big_square_locations, small_square_location)
 
-
-                    image_logo = Image.open(logo_path).resize((int(width*logo_franction), int(height*logo_franction)))
-                    image_array = np.array(image_logo)
-
-                    if len(image_array.shape) == 2:
-                        alpha_channel = image_array
-                    elif len(image_array.shape) == 3:
-                        if image_array.shape[2] == 4:
-                            alpha_channel = image_array[:, :, 3]
-                        else:
-                            alpha_channel = image_array
-                            
-                    mask = alpha_channel > 0
-                    new_color = np.array([int(color) for color in qr_color.split("(")[1].split(")")[0].split(",")] + [255])
-                    image_array[mask] = new_color
-                    image_logo = Image.fromarray(image_array)
-
-                    image_result.paste(image_logo, (int((border_fraction+0.5-0.5*logo_franction)*width), int((border_fraction+0.5-0.5*logo_franction)*width)), image_logo)
-                    draw = ImageDraw.Draw(image_result)
-
-                    draw_dots(draw, cell_radius, circle_radius, width, background_color, qr_color)
-                    draw_squares(draw, qr_color, background_color, cell_radius, big_square_locations, small_square_location)
-
-                    if save:
-                        image_result.save(save_name)
-                    if show_result:
-                        if not showing:
-                            showing = True
-                            image_result.show()
+if save:
+    image_result.save(save_name)
+if show_result:
+    image_result.show()
